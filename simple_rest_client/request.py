@@ -19,6 +19,7 @@ def make_request(session, request):
         params=request.params,
         data=request.body,
         headers=request.headers,
+        files=request.files,
         timeout=request.timeout
     )
     content_type = client_response.headers.get('Content-Type', '')
