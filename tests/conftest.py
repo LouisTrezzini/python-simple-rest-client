@@ -55,12 +55,26 @@ def custom_resource():
 def reqres_resource():
     return Resource(
         api_root_url='https://reqres.in/api/', resource_name='users',
+    )
+
+
+@pytest.fixture
+def reqres_resource_json_encoded_body():
+    return Resource(
+        api_root_url='https://reqres.in/api/', resource_name='users',
         json_encode_body=True
     )
 
 
 @pytest.fixture
 def reqres_async_resource():
+    return AsyncResource(
+        api_root_url='https://reqres.in/api/', resource_name='users',
+    )
+
+
+@pytest.fixture
+def reqres_async_resource_json_encoded_body():
     return AsyncResource(
         api_root_url='https://reqres.in/api/', resource_name='users',
         json_encode_body=True

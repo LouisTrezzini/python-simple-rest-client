@@ -5,15 +5,15 @@ from aioresponses import aioresponses
 from simple_rest_client.resource import Resource
 
 
-def test_api_add_resource(api, reqres_resource):
-    api.add_resource(resource_name='users')
+def test_api_add_resource(api, reqres_resource_json_encoded_body):
+    api.add_resource(resource_name='users', json_encode_body=True)
     assert isinstance(api.users, Resource)
     attrs = (
         'api_root_url', 'resource_name', 'headers', 'actions', 'timeout',
         'append_slash', 'json_encode_body'
     )
     for attr in attrs:
-        assert getattr(api.users, attr) == getattr(reqres_resource, attr)
+        assert getattr(api.users, attr) == getattr(reqres_resource_json_encoded_body, attr)
     assert 'users' in api._resources
 
 

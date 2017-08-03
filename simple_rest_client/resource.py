@@ -117,17 +117,21 @@ class AsyncResource(BaseResource):
 
     def add_action(self, action_name):
         async def action_method(self, *args, body=None, params=None,
-                                headers=None, action_name=action_name):
+                                headers=None, files=None, action_name=action_name):
             url = self.get_action_full_url(action_name, *args)
             method = self.get_action_method(action_name)
-            if self.json_encode_body and body:
-                body = json.dumps(body)
+            if self.json_encode_body:
+                if body:
+                    body = json.dumps(body)
+                if files:
+                    raise Exception("Can't upload files with json-encoded body")
             request = Request(
                 url=url,
                 method=method,
                 params=params or {},
                 body=body,
                 headers=headers or {},
+                files=files or {},
                 timeout=self.timeout
             )
             request.params.update(self.params)

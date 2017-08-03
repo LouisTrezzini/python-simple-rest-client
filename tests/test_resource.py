@@ -62,6 +62,7 @@ def test_custom_resource_get_action_full_url(custom_resource):
 @pytest.mark.parametrize('url,method,status,action,args,kwargs', [
     ('https://reqres.in/api/users', 'GET', 200, 'list', None, {}),
     ('https://reqres.in/api/users', 'POST', 201, 'create', None, {'body': {'success': True}}),
+    ('https://reqres.in/api/users', 'POST', 201, 'create', None, {'body': {'success': True}, 'files': {'file': open('LICENSE', 'r')}}),
     ('https://reqres.in/api/users/2', 'GET', 200, 'retrieve', 2, {'body': {'success': True}}),
     ('https://reqres.in/api/users/2', 'PUT', 200, 'update', 2, {'body': {'success': True}}),
     ('https://reqres.in/api/users/2', 'PATCH', 200, 'partial_update', 2, {'body': {'success': True}}),
@@ -107,6 +108,7 @@ def test_resource_response_body(content_type, response_body, reqres_resource):
 @pytest.mark.parametrize('url,method,status,action,args,kwargs', [
     ('https://reqres.in/api/users', 'GET', 200, 'list', None, {}),
     ('https://reqres.in/api/users', 'POST', 201, 'create', None, {'body': {'success': True}}),
+    ('https://reqres.in/api/users', 'POST', 201, 'create', None, {'body': {'success': True}, 'files': {'file': open('LICENSE', 'r')}}),
     ('https://reqres.in/api/users/2', 'GET', 200, 'retrieve', 2, {'body': {'success': True}}),
     ('https://reqres.in/api/users/2', 'PUT', 200, 'update', 2, {'body': {'success': True}}),
     ('https://reqres.in/api/users/2', 'PATCH', 200, 'partial_update', 2, {'body': {'success': True}}),
@@ -121,6 +123,39 @@ async def test_async_resource_actions(url, method, status, action, args, kwargs,
     assert response.method == method
     assert response.url == url
     assert response.body == {'success': True}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('url,method,status,action,args,kwargs', [
+    ('https://reqres.in/api/users', 'GET', 200, 'list', None, {}),
+    ('https://reqres.in/api/users', 'POST', 201, 'create', None, {'body': {'success': True}}),
+    ('https://reqres.in/api/users/2', 'GET', 200, 'retrieve', 2, {'body': {'success': True}}),
+    ('https://reqres.in/api/users/2', 'PUT', 200, 'update', 2, {'body': {'success': True}}),
+    ('https://reqres.in/api/users/2', 'PATCH', 200, 'partial_update', 2, {'body': {'success': True}}),
+    ('https://reqres.in/api/users/2', 'DELETE', 204, 'destroy', 2, {'body': {'success': True}}),
+])
+async def test_async_resource_actions_json_encoded_body(url, method, status, action, args, kwargs, reqres_async_resource_json_encoded_body):
+    with aioresponses() as mock_response:
+        mock_response_method = getattr(mock_response, method.lower())
+        mock_response_method(url, status=status, body=b'{"success": true}', headers={'Content-Type': 'application/json'})
+        response = await getattr(reqres_async_resource_json_encoded_body, action)(args, **kwargs)
+    assert response.status_code == status
+    assert response.method == method
+    assert response.url == url
+    assert response.body == {'success': True}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('url,method,status,action,args,kwargs', [
+    ('https://reqres.in/api/users', 'POST', 201, 'create', None, {'body': {'success': True}, 'files': {'file': open('LICENSE', 'r')}}),
+])
+async def test_async_resource_actions_json_encoded_body_file_upload(url, method, status, action, args, kwargs, reqres_async_resource_json_encoded_body):
+    with aioresponses() as mock_response:
+        with pytest.raises(Exception) as excinfo:
+            mock_response_method = getattr(mock_response, method.lower())
+            mock_response_method(url, status=status, body=b'{"success": true}', headers={'Content-Type': 'application/json'})
+            response = await getattr(reqres_async_resource_json_encoded_body, action)(args, **kwargs)
+        assert 'Can\'t upload files with json-encoded body' in str(excinfo.value)
 
 
 @pytest.mark.asyncio

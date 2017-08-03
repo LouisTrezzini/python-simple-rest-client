@@ -51,7 +51,15 @@ async def make_async_request(session, request):
     method = request.method
     with async_timeout.timeout(request.timeout):
         session_method = getattr(session, method.lower())
-        async with session_method(request.url, params=request.params, data=request.body, headers=request.headers) as client_response:
+
+        if request.body:
+            data = request.body
+            if not isinstance(request.body, str):
+                data.update(request.files)
+        else:
+            data = request.files
+
+        async with session_method(request.url, params=request.params, data=data, headers=request.headers) as client_response:
             content_type = client_response.headers.get('Content-Type', '')
             if 'text' in content_type:
                 body = await client_response.text()
