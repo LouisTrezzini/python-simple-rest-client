@@ -1,7 +1,6 @@
 from unittest import mock
 
 import pytest
-from asynctest.mock import CoroutineMock
 from aiohttp.client_exceptions import ServerTimeoutError
 from requests.exceptions import (
     Timeout,
@@ -9,7 +8,6 @@ from requests.exceptions import (
 )
 
 from simple_rest_client.decorators import (
-    handle_async_request_error,
     handle_request_error,
     validate_response
 )
@@ -50,9 +48,3 @@ def test_handle_request_error_exceptions(side_effect):
     wrapped = mock.Mock(side_effect=side_effect)
     with pytest.raises(ClientConnectionError):
         handle_request_error(wrapped)()
-
-
-def test_handle_async_request_error_exceptions(event_loop):
-    wrapped = CoroutineMock(side_effect=ServerTimeoutError)
-    with pytest.raises(ClientConnectionError):
-        event_loop.run_until_complete(handle_async_request_error(wrapped)())

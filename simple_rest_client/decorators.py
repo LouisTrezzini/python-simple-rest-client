@@ -36,18 +36,3 @@ def handle_request_error(f):
         return response
 
     return wrapper
-
-
-def handle_async_request_error(f):
-    async def wrapper(*args, **kwargs):
-        try:
-            response = await f(*args, **kwargs)
-        except ServerTimeoutError as exc:
-            logger.exception(exc)
-            raise ClientConnectionError() from exc
-
-        validate_response(response)
-
-        return response
-
-    return wrapper

@@ -8,7 +8,7 @@ from json_encoder import json
 
 from .exceptions import ActionNotFound, ActionURLMatchError
 from .models import Request
-from .request import make_request, make_async_request
+from .request import make_request
 
 logger = logging.getLogger(__name__)
 
@@ -105,38 +105,5 @@ class Resource(BaseResource):
             request.params.update(self.params)
             request.headers.update(self.headers)
             return make_request(self.session, request)
-
-        setattr(self, action_name, MethodType(action_method, self))
-
-
-class AsyncResource(BaseResource):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for action_name in self.actions.keys():
-            self.add_action(action_name)
-
-    def add_action(self, action_name):
-        async def action_method(self, *args, body=None, params=None,
-                                headers=None, files=None, action_name=action_name):
-            url = self.get_action_full_url(action_name, *args)
-            method = self.get_action_method(action_name)
-            if self.json_encode_body:
-                if body:
-                    body = json.dumps(body)
-                if files:
-                    raise Exception("Can't upload files with json-encoded body")
-            request = Request(
-                url=url,
-                method=method,
-                params=params or {},
-                body=body,
-                headers=headers or {},
-                files=files or {},
-                timeout=self.timeout
-            )
-            request.params.update(self.params)
-            request.headers.update(self.headers)
-            async with aiohttp.ClientSession() as session:
-                return await make_async_request(session, request)
 
         setattr(self, action_name, MethodType(action_method, self))
